@@ -11,7 +11,7 @@
 
         </a>
         {% if user.is_authenticated %}    
-            <p>Bonjour {{ user.username }}</p> <a  href="{% url 'logout' %}"> <span>DECO</span></a>
+            <a  href="{% url 'logout' %}"> <span>DECO</span></a>
           
             
         {% else %}
