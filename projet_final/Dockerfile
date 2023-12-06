@@ -3,6 +3,7 @@ FROM python:3.9
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 

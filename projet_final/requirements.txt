@@ -5,3 +5,4 @@ gunicorn==21.0.1
 psycopg2-binary==2.9.9
 dj-database-url==2.1.0
 typing-extensions==4.8.0
+python-dotenv==0.19.2
