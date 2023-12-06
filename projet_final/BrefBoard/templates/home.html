@@ -1,14 +1,6 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-    <head>
-        <title>BrefBoard</title>
-     
-        <link rel="stylesheet" type="text/css" href="{% static 'static/style.css' %}">
+{% extends 'base.html' %}
+{% load static %} 
 
-    </head>
-<body>
-    <main>
+{% block home %}
         <h1>HELLO WORLD</h1>
-    </main>
-</body>
+{% endblock %}

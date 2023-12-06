@@ -20,4 +20,7 @@ from BrefBoard import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
+    path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('logout/', views.CustomLogoutView.as_view(), name='logout'),
+    path('inscription/', views.inscription, name='inscription'),
 ]

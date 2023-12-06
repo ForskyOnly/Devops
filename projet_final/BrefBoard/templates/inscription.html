@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %} 
+{% block inscription %}
+    <h2 class="h2">Inscription</h2>
+
+<form method="post" class="login-form">
+    {% csrf_token %}
+    
+        <label for="id_username">Nom d'utilisateur :</label>
+        {{ form.username }}
+    
+        <label for="id_password1">Mot de passe :</label>
+        {{ form.password1 }}
+    
+        <label for="id_password2">Confirmez le mot de passe :</label>
+        {{ form.password2 }}
+    
+    <button type="submit">S'inscrire</button>
+</form>
+     
+{% endblock %}
