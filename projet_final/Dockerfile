@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 # Définir la variable d'environnement pour exécuter Django en mode production
-ENV DJANGO_SETTINGS_MODULE=projet_final.settings
+ENV DJANGO_SETTINGS_MODULE=projet_final.settings.production
 
 # Collecter les fichiers statiques
 RUN python manage.py collectstatic --noinput
