@@ -6,12 +6,11 @@ import dj_database_url
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+DEBUG = False
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://bref-board.azurewebsites.net/']
+CSRF_TRUSTED_ORIGINS = ['https://*.bref-board.azurewebsites.net/']
 
-
-DEBUG = False
 
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
