@@ -29,4 +29,4 @@ jobs:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
         cd projet_final
-        pytest --cov=brefboard --cov-report=term --cov-fail-under=80
+        pytest --cov=BrefBoard --cov-report=term --cov-fail-under=80
