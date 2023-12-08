@@ -26,7 +26,7 @@ ALLOWED_HOSTS = ['*']
 
 #SECRET KEY
 
-SECRET_KEY = os.getenv('SECRET_KEY', default='secretsuperkey')
+SECRET_KEY = os.getenv('SECRET_KEY', default='defaultsecretsuperkey')
 
 # Application definition
 
