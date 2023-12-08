@@ -25,7 +25,7 @@ jobs:
 
     - name: Run tests 
       env:
-        DJANGO_SETTINGS_MODULE: projet_final.settings.base
+        DJANGO_SETTINGS_MODULE: projet_final.settings.development
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
         cd projet_final
