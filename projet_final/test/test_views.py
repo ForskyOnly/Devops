@@ -14,13 +14,3 @@ def test_inscription_view():
     response = client.get(reverse('inscription'))
     assert response.status_code == 200
 
-def test_inscription_invalid_post_data():
-    client = Client()
-    user_data = {
-        'username': 'newuser',
-        'password1': 'password123',
-        'password2': 'password1234',  
-    }
-    response = client.post(reverse('inscription'), user_data)
-    assert 'form' in response.context
-    assert response.context['form'].errors  

@@ -24,6 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ALLOWED_HOSTS = ['*']
 
 
+#SECRET KEY
+
+SECRET_KEY = os.getenv('SECRET_KEY', default='secretsuperkey')
 
 # Application definition
 
