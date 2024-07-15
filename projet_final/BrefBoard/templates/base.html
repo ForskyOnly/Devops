@@ -1,36 +1,26 @@
 <!DOCTYPE html>
-<html lang="fr">
-    <head>
-        <title>BrefBoard</title>
-        {% load static %}
-        <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
-    </head>
+{% load static %}
+<html>
+<head>
+    <title>BrefBoard</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+</head>
 <body>
-    <nav>
-        
+    <header>
+        <nav>
+            {% if request.user.is_authenticated %}
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Se déconnecter</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Se connecter</a>
+                <a href="{% url 'inscription' %}">S'inscire</a>
+            {% endif %}
+        </nav>
+    </header>
 
-        </a>
-        {% if user.is_authenticated %}    
-            <a  href="{% url 'logout' %}"> <span>DECO</span></a>
-          
-            
-        {% else %}
-            <a  href="{% url 'login' %}">Connexion</a>
-            <a  href="{% url 'home' %}">Home</a>
-            <a  href="{% url 'inscription' %}">inscription</a>
-
-        {% endif %}
-    </nav>
-
-    <main>
-
-        {% block login %}
-        {% endblock %}
-        {% block inscription %}
-        {% endblock %}
-        {% block home %}
-        {% endblock %}
-
-    </main>
+    {% block content %}
+    {% endblock %}
 </body>
 </html>

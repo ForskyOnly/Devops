@@ -1,12 +1,10 @@
 {% extends 'base.html' %}
-{% load static %} 
-
-{% block home %}
+{% block content %}
 
     {% if user.is_authenticated %} 
-    <h1>HELLO {{ user.username|upper }}</h1>
+        <h1>HELLO {{ user.username|upper }}</h1>
     {% else %}    
-    <h1>HELLO WOLRD</h1>
+        <h1>HELLO WORLD</h1>
     {% endif %} 
 
 {% endblock %}

@@ -13,7 +13,7 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(LogoutView):
-    template_name = 'logout.html'
+    next_page = 'login'
     
 
 def inscription(request):
