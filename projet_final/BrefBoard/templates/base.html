@@ -3,24 +3,31 @@
 <html>
 <head>
     <title>BrefBoard</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
 </head>
 <body>
     <header>
         <nav>
             {% if request.user.is_authenticated %}
+                <a href="{% url 'profil' %}">{{ request.user.username }}</a>
+                <a href="{% url 'home' %}">Home</a>
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
-                    <button type="submit">Se déconnecter</button>
+                    <a href="#" onclick="this.closest('form').submit()" >Se déconnecter</a>
                 </form>
             {% else %}
                 <a href="{% url 'login' %}">Se connecter</a>
-                <a href="{% url 'inscription' %}">S'inscire</a>
+                <a href="{% url 'inscription' %}">S'inscrire</a>
             {% endif %}
         </nav>
     </header>
 
     {% block content %}
     {% endblock %}
+
+    <footer>
+        <p>&copy; 2024 Rubic ggwp</p>
+    </footer>
 </body>
 </html>

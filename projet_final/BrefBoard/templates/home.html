@@ -1,10 +1,41 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
+<main>
+    <div class="text-container">
+    
+        <div>
+            <button onclick="startRecording()">Démarrer l'enregistrement</button>
+            <button onclick="stopRecording()">Arrêter l'enregistrement</button>
+        </div>
+    </div>
 
-    {% if user.is_authenticated %} 
-        <h1>HELLO {{ user.username|upper }}</h1>
-    {% else %}    
-        <h1>HELLO WORLD</h1>
-    {% endif %} 
+    <div class="text-container">
+        <h2>Texte Transcrit</h2>
+        <pre id="texteTranscrit"></pre>
+    </div>
 
+    <div class="text-container">
+        <h2>Résumé</h2>
+        <pre id="resumeTexte"></pre>
+    </div>
+</main>
+<script>
+    function startRecording() {
+        fetch("{% url 'start_recording' %}")
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.status);
+            });
+    }
+
+    function stopRecording() {
+        fetch("{% url 'stop_recording' %}")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("texteTranscrit").textContent = data.texte_transcrit;
+                document.getElementById("resumeTexte").textContent = data.resume_texte;
+            });
+    }
+</script>
 {% endblock %}
