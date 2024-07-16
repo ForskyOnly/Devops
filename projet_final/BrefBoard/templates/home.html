@@ -1,41 +1,34 @@
+<!-- home.html -->
 {% extends 'base.html' %}
-{% load static %}
+
 {% block content %}
-<main>
-    <div class="text-container">
-    
-        <div>
-            <button onclick="startRecording()">Démarrer l'enregistrement</button>
-            <button onclick="stopRecording()">Arrêter l'enregistrement</button>
-        </div>
-    </div>
+<h1>Enregistrement de Réunion</h1>
+<button onclick="startRecording()">Démarrer l'enregistrement</button>
+<button onclick="stopRecording()">Arrêter l'enregistrement</button>
 
-    <div class="text-container">
-        <h2>Texte Transcrit</h2>
-        <pre id="texteTranscrit"></pre>
-    </div>
+<h2>Texte Transcrit</h2>
+<p id="texte-transcrit"></p>
 
-    <div class="text-container">
-        <h2>Résumé</h2>
-        <pre id="resumeTexte"></pre>
-    </div>
-</main>
+<h2>Résumé</h2>
+<p id="resume-texte"></p>
+
 <script>
-    function startRecording() {
-        fetch("{% url 'start_recording' %}")
-            .then(response => response.json())
-            .then(data => {
-                console.log(data.status);
-            });
-    }
+function startRecording() {
+    fetch("{% url 'start_recording' %}")
+        .then(response => response.json())
+        .then(data => {
+            alert(data.status);
+        });
+}
 
-    function stopRecording() {
-        fetch("{% url 'stop_recording' %}")
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("texteTranscrit").textContent = data.texte_transcrit;
-                document.getElementById("resumeTexte").textContent = data.resume_texte;
-            });
-    }
+function stopRecording() {
+    fetch("{% url 'stop_recording' %}")
+        .then(response => response.json())
+        .then(data => {
+            alert(data.status);
+            document.getElementById("texte-transcrit").innerText = data.texte_transcrit;
+            document.getElementById("resume-texte").innerText = data.resume_texte;
+        });
+}
 </script>
 {% endblock %}
