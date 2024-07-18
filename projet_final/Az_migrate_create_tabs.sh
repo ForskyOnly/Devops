@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS Summary (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 EOF
+echo "Migration et création des tables terminé."
 
 # Se connecter au serveur MySQL et ajouter les clés étrangères
 mysql -h $DATABASE_HOST -u $USERNAME -p$PASSWORD --ssl-mode=DISABLED $DATABASE << EOF
@@ -47,4 +48,4 @@ ADD FOREIGN KEY (audio_id) REFERENCES Audio(id);
 ALTER TABLE Summary
 ADD FOREIGN KEY (transcription_id) REFERENCES Transcription(id);
 EOF
-echo "Migration et création des tables terminée. Procédez avec le script de migration Django et de création des tables."
+echo "Ajout des clé primaire et clés étrangères terminé"
