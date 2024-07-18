@@ -15,7 +15,9 @@ CSRF_TRUSTED_ORIGINS = ['https://*.bref-board.azurewebsites.net/']
 
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': dj_database_url.config(
+        default=f"mysql://{os.getenv('USERNAME')}:{os.getenv('PASSWORD')}@{os.getenv('SERVER_NAME')}.mysql.database.azure.com/{os.getenv('DATABASE')}?ssl-mode=DISABLED"
+    )
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
