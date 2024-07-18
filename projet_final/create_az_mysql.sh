@@ -6,7 +6,7 @@ source .env
 set +o allexport
 
 # Login to Azure
-az login 
+az login
 
 # Set the subscription ID
 az account set --subscription $SUBSCRIPTION_ID
@@ -39,7 +39,7 @@ az mysql flexible-server firewall-rule create \
     --end-ip-address $MY_IP
 
 # Create a new MySQL database
-az mysql flexible-server db create --resource-group $RESOURCE_GROUP --server-name $UNIQUE_SERVER_NAME --database-name $DATABASE 
+az mysql flexible-server db create --resource-group $RESOURCE_GROUP --server-name $UNIQUE_SERVER_NAME --database-name $DATABASE
 
 # Show the MySQL server details
 az mysql flexible-server show --resource-group $RESOURCE_GROUP --name $UNIQUE_SERVER_NAME
@@ -52,21 +52,13 @@ then
     sudo apt-get install mysql-client -y
 fi
 
-# Connect to the MySQL server and grant privileges to the user
-MYSQL_HOST=$UNIQUE_SERVER_NAME.mysql.database.azure.com
-MYSQL_PORT=3306
-MYSQL_SSL_CA_PATH="/etc/ssl/certs/ca-certificates.crt" # Path to CA certificates
-
-# Grant privileges to the user
-mysql -u $USERNAME@$UNIQUE_SERVER_NAME -p$PASSWORD -h $MYSQL_HOST -P $MYSQL_PORT \
-    --ssl-ca=$MYSQL_SSL_CA_PATH --ssl-mode=VERIFY_CA << EOF
-GRANT ALL PRIVILEGES ON *.* TO 'rubic'@'%' IDENTIFIED BY '$PASSWORD' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-EOF
+# Download the SSL certificate
+wget --no-check-certificate -O /home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem https://www.digicert.com/CACerts/DigiCertGlobalRootCA.crt.pem
 
 # Connect to the MySQL server as 'rubic' and create the tables
-mysql -u rubic@$UNIQUE_SERVER_NAME -p$PASSWORD -h $MYSQL_HOST -P $MYSQL_PORT \
-    --ssl-ca=$MYSQL_SSL_CA_PATH --ssl-mode=VERIFY_CA $DATABASE << EOF
+mysql -u rubic@rubics-mysql-1721293694 -p$PASSWORD -h rubics-mysql-1721293694.mysql.database.azure.com --ssl-ca=/home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem --ssl-mode=VERIFY_CA $DATABASE << EOF
+USE $DATABASE;
+
 CREATE TABLE Audio (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -90,4 +82,8 @@ CREATE TABLE Summary (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (transcription_id) REFERENCES Transcription(id)
 );
+
+CREATE USER 'admin'@'%' IDENTIFIED BY 'password';
+GRANT SELECT, INSERT, UPDATE ON $DATABASE.* TO 'admin'@'%';
+FLUSH PRIVILEGES;
 EOF
