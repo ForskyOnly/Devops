@@ -14,10 +14,13 @@ az account set --subscription $SUBSCRIPTION_ID
 # Create a new resource group if it doesn't exist
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Create a new MySQL flexible server with a unique name
-UNIQUE_SERVER_NAME="rubics-mysql-$(date +%s)"
+# Define the server name manually
+SERVER_NAME="rubic-server"  # Remplacez par votre nom de serveur
+DATABASE="SpeechToSummerize"  # Remplacez par votre nom de base de données
+
+# Create a new MySQL flexible server
 az mysql flexible-server create \
-    --name $UNIQUE_SERVER_NAME \
+    --name $SERVER_NAME \
     --resource-group $RESOURCE_GROUP \
     --location $LOCATION \
     --admin-user $USERNAME \
@@ -33,16 +36,16 @@ MY_IP=$(curl -4 ifconfig.me)
 # Configure firewall to allow access from the current IPv4 address
 az mysql flexible-server firewall-rule create \
     --resource-group $RESOURCE_GROUP \
-    --name $UNIQUE_SERVER_NAME \
+    --name $SERVER_NAME \
     --rule-name AllowMyIPv4 \
     --start-ip-address $MY_IP \
     --end-ip-address $MY_IP
 
 # Create a new MySQL database
-az mysql flexible-server db create --resource-group $RESOURCE_GROUP --server-name $UNIQUE_SERVER_NAME --database-name $DATABASE
+az mysql flexible-server db create --resource-group $RESOURCE_GROUP --server-name $SERVER_NAME --database-name $DATABASE
 
 # Show the MySQL server details
-az mysql flexible-server show --resource-group $RESOURCE_GROUP --name $UNIQUE_SERVER_NAME
+az mysql flexible-server show --resource-group $RESOURCE_GROUP --name $SERVER_NAME
 
 # Install MySQL client if not already installed
 if ! command -v mysql &> /dev/null
@@ -55,35 +58,45 @@ fi
 # Download the SSL certificate
 wget --no-check-certificate -O /home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem https://www.digicert.com/CACerts/DigiCertGlobalRootCA.crt.pem
 
-# Connect to the MySQL server as 'rubic' and create the tables
-mysql -u rubic@rubics-mysql-1721293694 -p$PASSWORD -h rubics-mysql-1721293694.mysql.database.azure.com --ssl-ca=/home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem --ssl-mode=VERIFY_CA $DATABASE << EOF
+# Perform Django migrations
+python manage.py migrate
+
+# Connect to the MySQL server and create the additional tables
+mysql -u rubic@$SERVER_NAME -p$PASSWORD -h $SERVER_NAME.mysql.database.azure.com --ssl-ca=/home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem --ssl-mode=VERIFY_CA $DATABASE << EOF
 USE $DATABASE;
 
 CREATE TABLE Audio (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     file_url VARCHAR(255) NOT NULL,
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES auth_user(id)
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE Transcription (
     id INT AUTO_INCREMENT PRIMARY KEY,
     audio_id INT NOT NULL,
     text LONGTEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (audio_id) REFERENCES Audio(id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE Summary (
     id INT AUTO_INCREMENT PRIMARY KEY,
     transcription_id INT NOT NULL,
     text LONGTEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (transcription_id) REFERENCES Transcription(id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+EOF
 
-CREATE USER 'admin'@'%' IDENTIFIED BY 'password';
-GRANT SELECT, INSERT, UPDATE ON $DATABASE.* TO 'admin'@'%';
-FLUSH PRIVILEGES;
+# Connect to the MySQL server and add the foreign keys
+mysql -u rubic@$SERVER_NAME -p$PASSWORD -h $SERVER_NAME.mysql.database.azure.com --ssl-ca=/home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem --ssl-mode=VERIFY_CA $DATABASE << EOF
+USE $DATABASE;
+
+ALTER TABLE Audio
+ADD FOREIGN KEY (user_id) REFERENCES auth_user(id);
+
+ALTER TABLE Transcription
+ADD FOREIGN KEY (audio_id) REFERENCES Audio(id);
+
+ALTER TABLE Summary
+ADD FOREIGN KEY (transcription_id) REFERENCES Transcription(id);
 EOF
