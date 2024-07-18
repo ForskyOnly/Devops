@@ -15,9 +15,17 @@ CSRF_TRUSTED_ORIGINS = ['https://*.bref-board.azurewebsites.net/']
 
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"mysql://{os.getenv('USERNAME')}:{os.getenv('PASSWORD')}@{os.getenv('SERVER_NAME')}.mysql.database.azure.com/{os.getenv('DATABASE')}?ssl-mode=DISABLED"
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DATABASE'),
+        'USER': os.getenv('USERNAME'),
+        'PASSWORD': os.getenv('PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': os.getenv('DATABASE_PORT'),
+        'OPTIONS': {
+             'ssl': {'disabled': True},  # Comment out or remove this line
+        },
+    }
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

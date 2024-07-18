@@ -1,0 +1,2 @@
+[client]
+ssl-ca=/home/utilisateur/Documents/dev/devia/Devops/projet_final/DigiCertGlobalRootCA.crt.pem
