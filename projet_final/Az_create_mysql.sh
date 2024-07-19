@@ -46,7 +46,7 @@ az mysql flexible-server show --resource-group $RESOURCE_GROUP --name $SERVER_NA
 # Installer le client MySQL s'il n'est pas déjà installé
 if ! command -v mysql &> /dev/null
 then
-    echo "Client MySQL introuvable. Installation..."
+    echo "Client MySQL introuvable. Installation de MySQL client..."
     sudo apt-get update
     sudo apt-get install mysql-client -y
 fi

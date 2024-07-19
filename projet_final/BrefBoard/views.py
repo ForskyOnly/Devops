@@ -1,4 +1,3 @@
-# views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
@@ -54,6 +53,7 @@ def start_recording(request):
     transcription = None
     enregistrement_termine.clear()
 
+    logger.debug("Début du thread pour enregistrer audio et transcrire")
     thread = threading.Thread(target=enregistrer_audio_et_transcrire, args=(request.user,))
     thread.start()
 
@@ -76,7 +76,7 @@ def stop_recording(request):
     else:
         logger.error("Transcription est None")
         return JsonResponse({'status': 'Erreur lors de l\'enregistrement', 'texte_transcrit': '', 'resume_texte': ''}, status=500)
-
+    
 def enregistrer_audio_et_transcrire(user):
     global enregistrement, trames, texte_transcrit, transcription, enregistrement_termine
 
@@ -123,13 +123,21 @@ def enregistrer_audio_et_transcrire(user):
     p.terminate()
 
     try:
+        logger.debug("Tentative de sauvegarde de l'audio")
         fichier_audio = Audio(user=user, file=fichier_segment)
         fichier_audio.save()
         logger.debug(f"Audio sauvegardé: {fichier_audio.id}")
 
+        logger.debug("Tentative de sauvegarde de la transcription")
         transcription = Transcription(audio=fichier_audio, text=texte_transcrit)
         transcription.save()
         logger.debug(f"Transcription sauvegardée: {transcription.id}")
+
+        # Supprimer le fichier audio après la transcription
+        if os.path.exists(fichier_segment):
+            os.remove(fichier_segment)
+            logger.debug(f"Fichier audio supprimé: {fichier_segment}")
+
     except Exception as e:
         logger.error(f"Erreur lors de la sauvegarde de l'audio ou de la transcription: {e}")
         transcription = None
@@ -144,9 +152,10 @@ def traduire_et_resumer(texte, transcription_id):
     client = MistralClient(api_key=cle_api)
 
     message = (
-        f"résumez cette transciption : {texte}. "
-        "Toujours assister avec soin, respect et vérité. Répondre avec une utilité maximale tout en assurant la sécurité. Éviter les contenus nuisibles, non éthiques, préjudiciables ou négatifs. Veiller à ce que les réponses promeuvent l'équité et la positivité."
-        "Le résumé doit souligner les points importants en utilisant un style formel et professionnel."
+        f"résumez cette transcription : {texte}. "
+        "Toujours assister avec soin, respect et vérité. Répondre avec une utilité maximale tout en assurant la sécurité. "
+        "Éviter les contenus nuisibles, non éthiques, préjudiciables ou négatifs. Veiller à ce que les réponses promeuvent l'équité et la positivité. "
+        "Le résumé doit souligner les points importants en utilisant un style formel et professionnel. "
         "Il doit être structuré avec des paragraphes clairs et concis, en mettant l'accent sur les principaux thèmes et conclusions. "
         "Assurez-vous que le résumé soit bien structuré, facile à lire, et qu'il fournisse une vue d'ensemble complète et précise de la transcription. "
     )
