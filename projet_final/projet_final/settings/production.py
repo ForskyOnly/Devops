@@ -5,8 +5,7 @@ import dj_database_url
 from dotenv import load_dotenv
 load_dotenv()
 
-
-
+MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = True

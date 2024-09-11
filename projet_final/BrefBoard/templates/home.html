@@ -1,34 +1,363 @@
-<!-- home.html -->
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
-<h1>Enregistrement de Réunion</h1>
-<button onclick="startRecording()">Démarrer l'enregistrement</button>
-<button onclick="stopRecording()">Arrêter l'enregistrement</button>
 
-<h2>Texte Transcrit</h2>
-<p id="texte-transcrit"></p>
+<div class="container">
+    <h1>Enregistrement de Réunion</h1>
+    <h2 id="titre-reunion" style="display: none;"></h2>
+    <div id="controles">
+        <button id="startRecording">Commencer l'enregistrement</button>
+        <button id="stopRecording" style="display: none;">Arrêter l'enregistrement</button>
+        <button id="editTranscription" style="display: none;">Modifier la transcription</button>
+        <button id="saveTranscription" style="display: none;">Enregistrer et résumer</button>
+    </div>
 
-<h2>Résumé</h2>
-<p id="resume-texte"></p>
+    <div class="tabs">
+        <button class="tab-button active" data-tab="realtime">En direct</button>
+        <button class="tab-button" data-tab="final">Finale</button>
+        <button class="tab-button" data-tab="resume">Résumé</button>
+    </div>
 
+    <div class="tab-content">
+        <div id="realtime" class="tab-pane active">
+            <div class="scrollable-content" id="transcription-realtime"></div>
+        </div>
+        <div id="final" class="tab-pane">
+            <div class="scrollable-content" id="transcription-finale"></div>
+            <textarea class="scrollable-content" id="transcription-editable" style="display: none;"></textarea>
+        </div>
+        <div id="resume" class="tab-pane">
+            <div class="resume-controls">
+                <select id="fontSize">
+                    <option value="12">12px</option>
+                    <option value="14">14px</option>
+                    <option value="16" selected>16px</option>
+                    <option value="18">18px</option>
+                    <option value="20">20px</option>
+                    <option value="24">24px</option>
+                </select>
+                <input type="color" id="textColor" value="#000000">
+                <button id="boldText">B</button>
+                <button id="italicText">I</button>
+                <button id="underlineText">U</button>
+            </div>
+            <div class="scrollable-content" id="resume-content" contenteditable="true"></div>
+            <div class="download-buttons">
+                <button id="downloadText">Télécharger TXT</button>
+                <button id="downloadPDF">Télécharger PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        width: 84%;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .tabs {
+        display: flex;
+        margin-bottom: 10px;
+    }
+    .tab-button {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+        flex-grow: 1;
+        color: black;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    .tab-button.active {
+        background-color: #fff;
+        border-bottom: none;
+        color: black;
+    }
+    .tab-button:hover {
+        background-color: #e0f0e0; /* Ajustez cette valeur si nécessaire */
+    }
+    .tab-content {
+        border: 1px solid #ccc;
+        padding: 20px;
+    }
+    .tab-pane {
+        display: none;
+    }
+    .tab-pane.active {
+        display: block;
+    }
+    .scrollable-content {
+        height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: #f9f9f9;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    #resume-content {
+        white-space: pre-wrap;
+        min-height: 200px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-size: 16px;
+    }
+    .resume-controls {
+        margin-bottom: 10px;
+    }
+    .resume-controls > * {
+        margin-right: 5px;
+    }
+    .resume-controls button {
+        font-weight: bold;
+        width: 30px;
+        height: 30px;
+    }
+    .download-buttons {
+        margin-top: 10px;
+    }
+    .download-buttons button {
+        margin-right: 10px;
+    }
+    #transcription-editable {
+        height: 300px;
+        width: 100%;
+        box-sizing: border-box;
+        resize: none;
+    }
+    #controles {
+        margin-bottom: 20px; /* Ajoute de l'espace en bas des contrôles */
+    }
+    #startRecording, #stopRecording {
+        margin-bottom: 10px; /* Ajoute de l'espace en bas des boutons */
+    }
+    .tabs {
+        margin-top: 10px; /* Ajoute un peu d'espace au-dessus des onglets */
+    }
+    #startRecording {
+        margin-bottom: 15px; /* Ajuste cette valeur selon vos besoins */
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-function startRecording() {
-    fetch("{% url 'start_recording' %}")
-        .then(response => response.json())
-        .then(data => {
-            alert(data.status);
-        });
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const startButton = document.getElementById('startRecording');
+    const stopButton = document.getElementById('stopRecording');
+    const editButton = document.getElementById('editTranscription');
+    const saveButton = document.getElementById('saveTranscription');
+    const transcriptionRealtime = document.getElementById('transcription-realtime');
+    const transcriptionFinale = document.getElementById('transcription-finale');
+    const transcriptionEditable = document.getElementById('transcription-editable');
+    const resumeDiv = document.getElementById('resume-content');
+    const titreDiv = document.getElementById('titre-reunion');
 
-function stopRecording() {
-    fetch("{% url 'stop_recording' %}")
+    let transcriptionInterval;
+
+    startButton.addEventListener('click', startRecording);
+    stopButton.addEventListener('click', stopRecording);
+    editButton.addEventListener('click', editTranscription);
+    saveButton.addEventListener('click', saveTranscription);
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    function startRecording() {
+        fetch('{% url "start_recording" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
         .then(response => response.json())
         .then(data => {
-            alert(data.status);
-            document.getElementById("texte-transcrit").innerText = data.texte_transcrit;
-            document.getElementById("resume-texte").innerText = data.resume_texte;
+            console.log(data.status);
+            startButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            editButton.style.display = 'none';
+            saveButton.style.display = 'none';
+            transcriptionRealtime.textContent = '';
+            transcriptionFinale.value = '';
+            resumeDiv.textContent = '';
+            titreDiv.textContent = '';
+            transcriptionInterval = setInterval(getTranscription, 1000);
         });
-}
+    }
+
+    function stopRecording() {
+        fetch('{% url "stop_recording" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.status);
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            editButton.style.display = 'inline-block';
+            clearInterval(transcriptionInterval);
+            transcriptionFinale.textContent = data.texte_transcrit;
+            console.log("Transcription reçue:", data.texte_transcrit); // Ajoutez cette ligne pour le débogage
+        });
+    }
+
+    function editTranscription() {
+        const transcriptionFinale = document.getElementById('transcription-finale');
+        const transcriptionEditable = document.getElementById('transcription-editable');
+        transcriptionEditable.value = transcriptionFinale.textContent;
+        transcriptionFinale.style.display = 'none';
+        transcriptionEditable.style.display = 'block';
+        editButton.style.display = 'none';
+        saveButton.style.display = 'inline-block';
+    }
+
+    function saveTranscription() {
+        const transcriptionFinale = document.getElementById('transcription-finale');
+        const transcriptionEditable = document.getElementById('transcription-editable');
+        const resumeDiv = document.getElementById('resume');
+        const titreDiv = document.getElementById('titre-reunion');
+        const texteCorrige = transcriptionEditable.value;
+        fetch('{% url "save_and_summarize" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ texte: texteCorrige })
+        })
+        .then(response => response.json())
+        .then(data => {
+            transcriptionFinale.textContent = data.texte_sauvegarde;
+            resumeDiv.textContent = data.resume_texte;
+            titreDiv.textContent = data.titre;
+            transcriptionFinale.style.display = 'block';
+            transcriptionEditable.style.display = 'none';
+            saveButton.style.display = 'none';
+            editButton.style.display = 'inline-block';
+            titreDiv.style.display = 'block';
+        });
+    }
+
+    function getTranscription() {
+        fetch('{% url "get_current_transcription" %}')
+        .then(response => response.json())
+        .then(data => {
+            const transcriptionRealtime = document.getElementById('transcription-realtime');
+            transcriptionRealtime.textContent = data.transcription_complete;
+            transcriptionRealtime.scrollTop = transcriptionRealtime.scrollHeight;
+        });
+    }
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+            button.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    const fontSizeSelect = document.getElementById('fontSize');
+    const textColorInput = document.getElementById('textColor');
+    const boldTextButton = document.getElementById('boldText');
+    const italicTextButton = document.getElementById('italicText');
+    const underlineTextButton = document.getElementById('underlineText');
+    const downloadTextButton = document.getElementById('downloadText');
+    const downloadPDFButton = document.getElementById('downloadPDF');
+
+    fontSizeSelect.addEventListener('change', () => applyStyle('fontSize', fontSizeSelect.value + 'px'));
+    textColorInput.addEventListener('input', () => applyStyle('color', textColorInput.value));
+    boldTextButton.addEventListener('click', () => applyStyle('bold'));
+    italicTextButton.addEventListener('click', () => applyStyle('italic'));
+    underlineTextButton.addEventListener('click', () => applyStyle('underline'));
+    downloadTextButton.addEventListener('click', downloadAsText);
+    downloadPDFButton.addEventListener('click', downloadAsPDF);
+
+    function applyStyle(style, value) {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const span = document.createElement('span');
+            
+            switch(style) {
+                case 'fontSize':
+                    span.style.fontSize = value;
+                    break;
+                case 'color':
+                    span.style.color = value;
+                    break;
+                case 'bold':
+                    span.style.fontWeight = 'bold';
+                    break;
+                case 'italic':
+                    span.style.fontStyle = 'italic';
+                    break;
+                case 'underline':
+                    span.style.textDecoration = 'underline';
+                    break;
+            }
+
+            range.surroundContents(span);
+        } else {
+            // Si aucun texte n'est sélectionné, appliquer le style à tout le contenu
+            switch(style) {
+                case 'fontSize':
+                    resumeDiv.style.fontSize = value;
+                    break;
+                case 'color':
+                    resumeDiv.style.color = value;
+                    break;
+            }
+        }
+    }
+
+    function downloadAsText() {
+        const text = resumeDiv.innerText;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'resume.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function downloadAsPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.html(resumeDiv, {
+            callback: function (doc) {
+                doc.save('resume.pdf');
+            },
+            x: 10,
+            y: 10,
+            width: 190,
+            windowWidth: 650
+        });
+    }
+});
 </script>
+
 {% endblock %}

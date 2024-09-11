@@ -3,7 +3,6 @@
 <html>
 <head>
     <title>BrefBoard</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
 </head>
 <body>
@@ -14,7 +13,7 @@
                 <a href="{% url 'home' %}">Home</a>
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
-                    <a href="#" onclick="this.closest('form').submit()" >Se déconnecter</a>
+                    <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">Se déconnecter</button>
                 </form>
             {% else %}
                 <a href="{% url 'login' %}">Se connecter</a>

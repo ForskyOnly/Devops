@@ -23,6 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = ['*']
 
+# Dans settings.py
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+
 
 
 # Application definition
