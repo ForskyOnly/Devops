@@ -181,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
             transcriptionRealtime.textContent = '';
             transcriptionFinale.value = '';
             resumeDiv.textContent = '';
-            titreDiv.textContent = '';
             transcriptionInterval = setInterval(getTranscription, 1000);
         });
     }
@@ -218,8 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveTranscription() {
         const transcriptionFinale = document.getElementById('transcription-finale');
         const transcriptionEditable = document.getElementById('transcription-editable');
-        const resumeDiv = document.getElementById('resume');
-        const titreDiv = document.getElementById('titre-reunion');
         const texteCorrige = transcriptionEditable.value;
         fetch('{% url "save_and_summarize" %}', {
             method: 'POST',
@@ -233,12 +230,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             transcriptionFinale.textContent = data.texte_sauvegarde;
             resumeDiv.textContent = data.resume_texte;
-            titreDiv.textContent = data.titre;
             transcriptionFinale.style.display = 'block';
             transcriptionEditable.style.display = 'none';
             saveButton.style.display = 'none';
             editButton.style.display = 'inline-block';
-            titreDiv.style.display = 'block';
         });
     }
 

@@ -35,11 +35,11 @@ api_key = os.getenv('MISTRAL_API_KEY')
 # Charger le modèle Whisper au démarrage
 try:
     appareil = "cuda" if torch.cuda.is_available() else "cpu"
-    modele = whisper.load_model("base", device=appareil)
+    modele = whisper.load_model("small", device=appareil)
 except RuntimeError as e:
     logger.error("Erreur CUDA, passage au CPU...")
     appareil = "cpu"
-    modele = whisper.load_model("base", device=appareil)
+    modele = whisper.load_model("small", device=appareil)
 
 # Variables globales pour gérer l'enregistrement
 enregistrement = False
