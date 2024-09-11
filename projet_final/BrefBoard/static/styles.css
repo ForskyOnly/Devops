@@ -8,7 +8,7 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Roboto', 'Arial', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     margin: 0;
@@ -21,30 +21,58 @@ body {
 
 header {
     background-color: var(--primary-color);
-    padding: 15px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px 0; /* Réduit de 15px à 10px */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légèrement réduite */
 }
 
 nav {
     max-width: 1200px;
     margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 0 20px;
 }
 
-nav a, nav button {
-    color: var(--white);
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
+.nav-content {
+    display: flex;
+    justify-content: center; /* Centre les éléments horizontalement */
+    align-items: center;
+    gap: 15px; /* Légèrement réduit de 20px à 15px */
 }
 
-nav a:hover, nav button:hover {
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espace entre les éléments */
+}
+
+.nav-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    text-decoration: none;
+    padding: 8px 12px; /* Réduit de 10px 15px à 8px 12px */
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 14px; /* Réduit de 16px à 14px */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
     background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.logout-form {
+    margin: 0;
+    padding: 0;
+}
+
+.logout-form .nav-btn {
+    margin: 0;
 }
 
 main {
@@ -60,56 +88,76 @@ h1, h2 {
     color: var(--primary-color);
     text-align: center;
     margin-bottom: 30px;
+    font-weight: 700;
 }
 
-.form-container, .text-container {
+.form-container {
     background-color: var(--white);
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
     margin-bottom: 30px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-form {
+.form-container form {
     display: flex;
     flex-direction: column;
-}
-
-label {
-    margin-top: 15px;
-    font-weight: bold;
-}
-
-input[type="text"], input[type="password"], input[type="email"] {
     width: 100%;
-    padding: 12px;
-    border: 1px solid var(--gray);
-    border-radius: 5px;
-    margin-top: 5px;
-    transition: border-color 0.3s ease;
 }
 
-input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+.form-field {
+    margin-bottom: 15px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.form-field input[type="text"],
+.form-field input[type="password"],
+.form-field input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--gray);
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-field input[type="text"]:focus,
+.form-field input[type="password"]:focus,
+.form-field input[type="email"]:focus {
     border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 5px rgba(0, 148, 150, 0.5);
+    box-shadow: 0 0 10px rgba(0, 148, 150, 0.2);
 }
 
-button {
+.form-container button {
     background-color: var(--primary-color);
     color: var(--white);
     border: none;
-    padding: 12px 20px;
+    padding: 14px 20px;
     cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+    border-radius: 8px;
+    transition: all 0.3s ease;
     margin-top: 20px;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
 }
 
-button:hover {
+.form-container button:hover {
     background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 ul {
@@ -129,18 +177,132 @@ footer {
     background-color: var(--primary-color);
     color: var(--white);
     text-align: center;
-    padding: 15px 0;
+    padding: 10px 0; /* Réduit à 10px */
     margin-top: auto;
+    font-size: 12px; /* Réduit de 14px à 12px */
 }
 
 @media (max-width: 768px) {
-    nav {
+    .nav-content {
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
     }
 
-    nav a, nav button {
-        margin-bottom: 10px;
-        text-align: center;
+    .nav-btn {
+        width: auto; /* Change de 100% à auto */
+        margin-bottom: 5px; /* Réduit de 10px à 5px */
     }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        padding: 20px;
+        max-width: 90%;
+    }
+
+    .form-field input[type="text"],
+    .form-field input[type="password"],
+    .form-field input[type="email"] {
+        padding: 8px;
+        font-size: 14px;
+    }
+}
+
+form > *:last-child {
+    margin-top: 25px; /* Ajoute de l'espace avant le dernier élément du formulaire (généralement le bouton) */
+}
+
+/* Style général pour les boutons */
+button, .btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+}
+
+button:hover, .btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Styles spécifiques pour les boutons de contrôle */
+#controles button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/* Styles pour le bouton de déconnexion dans la nav */
+nav form button {
+    background: none;
+    border: none;
+    color: var(--white);
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+nav form button:hover {
+    background-color: var(--secondary-color);
+    border-radius: 5px;
+}
+
+/* Ajustements pour les boutons dans le contenu principal */
+main button {
+    margin-top: 10px;
+}
+
+/* Styles pour les boutons de navigation */
+.nav-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Ajustements pour le bouton de déconnexion */
+nav form button.nav-btn {
+    background-color: var(--primary-color);
+    border: none;
+    cursor: pointer;
+}
+
+nav form button.nav-btn:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Ajustements pour l'espacement dans la barre de navigation */
+nav .left-section, nav .right-section {
+    display: flex;
+    align-items: center;
+}
+
+nav .right-section > * {
+    margin-left: 10px;
 }

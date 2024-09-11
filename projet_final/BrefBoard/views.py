@@ -24,6 +24,7 @@ import time
 from django.views.decorators.http import require_http_methods
 import json
 from django.conf import settings
+from django.db.models import Q
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG)
@@ -263,11 +264,30 @@ class CustomLogoutView(LogoutView):
 
 @login_required
 def profil(request):
-    transcriptions = Transcription.objects.filter(audio__user=request.user).order_by('-created_at')
-    summaries = Summary.objects.filter(transcription__audio__user=request.user).order_by('-created_at')
+    sort_by = request.GET.get('sort', '-created_at')  # Par défaut, tri par date décroissante
+    search_query = request.GET.get('search', '')
+
+    transcriptions = Transcription.objects.filter(audio__user=request.user)
+    summaries = Summary.objects.filter(transcription__audio__user=request.user)
+
+    if search_query:
+        transcriptions = transcriptions.filter(
+            Q(audio__title__icontains=search_query) | 
+            Q(text__icontains=search_query)
+        )
+        summaries = summaries.filter(
+            Q(transcription__audio__title__icontains=search_query) | 
+            Q(text__icontains=search_query)
+        )
+
+    transcriptions = transcriptions.order_by(sort_by)
+    summaries = summaries.order_by(sort_by)
+
     return render(request, 'profil.html', {
         'transcriptions': transcriptions,
         'summaries': summaries,
+        'current_sort': sort_by,
+        'search_query': search_query,
     })
 
 @login_required

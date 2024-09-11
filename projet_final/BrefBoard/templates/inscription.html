@@ -1,22 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="form-container">
+<div class="form-container signup-form">
     <h2>Inscription</h2>
-    <form method="post" class="signup-form">
+    <form method="post">
         {% csrf_token %}
-        <label for="id_username">Nom d'utilisateur :</label>
-        {{ form.username }}
-
-        <label for="id_email">Email :</label>
-        {{ form.email }}
-
-        <label for="id_password1">Mot de passe :</label>
-        {{ form.password1 }}
-
-        <label for="id_password2">Confirmez le mot de passe :</label>
-        {{ form.password2 }}
-
+        {% for field in form %}
+            <div class="form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+            </div>
+        {% endfor %}
         <button type="submit">S'inscrire</button>
     </form>
 </div>

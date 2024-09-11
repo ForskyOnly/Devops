@@ -2,11 +2,16 @@
 {% load static %}
 {% block content %}
 
-<div class="form-container">
+<div class="form-container login-form">
     <h2>Connexion</h2>
-    <form method="post" action="{% url 'login' %}" class="login-form">
+    <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% for field in form %}
+            <div class="form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+            </div>
+        {% endfor %}
         <button type="submit">Se connecter</button>
     </form>
 </div>
