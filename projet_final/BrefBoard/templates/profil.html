@@ -38,6 +38,7 @@
                         <td>{{ transcription.created_at|date:"d/m/Y H:i" }}</td>
                         <td>
                             <button class="view-btn" data-id="{{ transcription.id }}" data-type="transcription">Voir</button>
+                            <button class="delete-btn" data-id="{{ transcription.id }}" data-type="transcription">Supprimer</button>
                         </td>
                     </tr>
                     {% empty %}
@@ -64,6 +65,7 @@
                         <td>{{ summary.created_at|date:"d/m/Y H:i" }}</td>
                         <td>
                             <button class="view-btn" data-id="{{ summary.id }}" data-type="summary">Voir</button>
+                            <button class="delete-btn" data-id="{{ summary.id }}" data-type="summary">Supprimer</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -78,6 +80,10 @@
         <span class="close">&times;</span>
         <h2 id="modal-title"></h2>
         <p id="modal-text"></p>
+        <div class="download-options">
+            <button id="download-pdf" class="download-btn">Télécharger en PDF</button>
+            <button id="download-txt" class="download-btn">Télécharger en TXT</button>
+        </div>
     </div>
 </div>
 
@@ -168,8 +174,9 @@
     }
     .sort-options a {
         text-decoration: none;
-        color: #007bff;
+        color: blue;
         margin-right: 10px;
+        
     }
     form {
         margin-bottom: 20px;
@@ -180,10 +187,29 @@
     }
     button {
         padding: 5px 10px;
-        background-color: #007bff;
+        background-color: #007d7f;
         color: white;
         border: none;
         cursor: pointer;
+    }
+    .download-options {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .download-btn {
+        padding: 10px 15px;
+        background-color: #007d7f;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .download-btn:hover {
+        background-color: #005f61;
     }
 </style>
 
@@ -195,6 +221,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalTitle = document.getElementById('modal-title');
     const modalText = document.getElementById('modal-text');
     const closeBtn = document.querySelector('.close');
+    const downloadPdfBtn = document.getElementById('download-pdf');
+    const downloadTxtBtn = document.getElementById('download-txt');
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -220,6 +248,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    downloadPdfBtn.addEventListener('click', function() {
+        const title = modalTitle.textContent;
+        const content = modalText.textContent;
+        downloadAsPDF(title, content);
+    });
+
+    downloadTxtBtn.addEventListener('click', function() {
+        const title = modalTitle.textContent;
+        const content = modalText.textContent;
+        downloadAsTXT(title, content);
+    });
+
+    function downloadAsPDF(title, content) {
+        const url = `/download_pdf/?title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`;
+        window.open(url, '_blank');
+    }
+
+    function downloadAsTXT(title, content) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     closeBtn.onclick = function() {
         modal.style.display = 'none';
     }
@@ -228,6 +285,46 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target == modal) {
             modal.style.display = 'none';
         }
+    }
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
+                const id = this.getAttribute('data-id');
+                const type = this.getAttribute('data-type');
+                fetch(`/delete_${type}/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Supprimer la ligne du tableau
+                        this.closest('tr').remove();
+                    } else {
+                        alert('Erreur lors de la suppression');
+                    }
+                });
+            }
+        });
+    });
+
+    // Fonction pour obtenir le token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 });
 </script>

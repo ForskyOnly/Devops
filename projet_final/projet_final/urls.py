@@ -19,6 +19,8 @@ from BrefBoard import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+from BrefBoard.views import home, profil, CustomLoginView, CustomLogoutView, inscription, start_recording, stop_recording, get_current_transcription, get_transcription, save_and_summarize, get_summary, download_pdf, delete_transcription, delete_summary, generate_summary_and_title
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('generate_summary/',views.generate_summary_and_title, name='generate_summary'),    
@@ -33,4 +35,7 @@ urlpatterns = [
     path('get_transcription/<int:id>/', views.get_transcription, name='get_transcription'),
     path('save_and_summarize/', views.save_and_summarize, name='save_and_summarize'),
     path('get_summary/<int:id>/', views.get_summary, name='get_summary'),
+    path('download_pdf/', download_pdf, name='download_pdf'),
+    path('delete_transcription/<int:id>/', views.delete_transcription, name='delete_transcription'),
+    path('delete_summary/<int:id>/', views.delete_summary, name='delete_summary'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
