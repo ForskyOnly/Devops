@@ -212,16 +212,14 @@ def generate_summary_and_title(texte, transcription_id=None):
 
     # Générer le résumé
     message_resume = (
-        f"Résumez cette transcription de réunion : {texte}\n\n"
+        f"Faites un résumé rofessionnel de cette transcription: {texte}\n\n"
         "Instructions :\n"
-        "1. Produisez un résumé concis et professionnel en français.\n"
-        "2. Concentrez-vous sur les points clés, les décisions prises et les actions à entreprendre.\n"
-        "3. Utilisez un langage formel et adapté au contexte d'entreprise.\n"
-        "4. Structurez le résumé avec des paragraphes clairs et des puces si nécessaire.\n"
-        "5. Assurez-vous que le résumé soit objectif et précis, sans interprétation personnelle.\n"
-        "6. Si la transcription n'est pas en français, traduisez le résumé en français.\n"
-        "7. Évitez toute mention de 'Le texte prescrit' ou de la nature de la tâche.\n"
-        "8. Limitez-vous aux informations fournies dans la transcription.\n"
+        "1. Produisez un résumé très concis et professionnel en français.\n"
+        "2. Concentrez-vous uniquement sur les informations présentes dans la transcription. et n'a\n"
+        "3. N'ajoutez aucune information ou interprétation qui n'est pas explicitement mentionnée.\n"
+        "4. Utilisez un langage formel et adapté au contexte d'entreprise.\n"
+        "5. Si la transcription est trop courte ou manque de contenu, reflétez simplement ce fait dans le résumé. Ne rajoutez rien sortie de son contexte.\n"
+        "6. Évitez toute spéculation ou élaboration au-delà du contenu fourni.\n"
     )
 
     messages = [ChatMessage(role="user", content=message_resume)]

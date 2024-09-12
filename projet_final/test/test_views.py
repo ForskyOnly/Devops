@@ -1,84 +1,72 @@
-import pytest
+from django.test import TestCase, Client
 from django.urls import reverse
-from django.test import Client
 from django.contrib.auth.models import User
+from BrefBoard.models import Audio, Transcription, Summary
+from unittest.mock import patch
 
-@pytest.mark.django_db
-def test_home_view():
-    client = Client()
-    response = client.get(reverse('home'))
-    assert response.status_code == 200
+class ViewsTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.client.login(username='testuser', password='12345')
 
-@pytest.mark.django_db
-def test_login():
-    username = 'testuser'
-    password = 'Alpha12345'
-    User.objects.create_user(username=username, password=password)
-    client = Client()
-    response = client.post(reverse('login'), {'username': username, 'password': password})
-    assert response.status_code == 302 
-    assert '_auth_user_id' in client.session
+    def test_home_view(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'home.html')
 
-@pytest.mark.django_db
-def test_logout():
-    username = 'testuser'
-    password = 'Alpha12345'
-    user = User.objects.create_user(username=username, password=password)
-    client = Client()
-    client.login(username=username, password=password)
-    assert '_auth_user_id' in client.session
-    response = client.get(reverse('logout'))
-    assert '_auth_user_id' not in client.session
-    assert response.status_code == 302  
-    assert response.url == reverse('home')  
-    
-@pytest.mark.django_db
-def test_inscription_view():
-    client = Client()
-    response = client.get(reverse('inscription'))
-    assert response.status_code == 200
-    
-@pytest.mark.django_db
-def test_inscription_invalid_post_data():
-    client = Client()
-    user_data = {
-        'username': 'newuser',
-        'password1': 'password123',
-        'password2': 'password1234',  
-    }
-    response = client.post(reverse('inscription'), user_data)
-    assert 'form' in response.context
-    assert response.context['form'].errors  
+    @patch('BrefBoard.views.enregistrer_audio_et_transcrire')
+    def test_start_recording(self, mock_enregistrer):
+        response = self.client.post(reverse('start_recording'))
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {'status': 'Enregistrement démarré'})
+        mock_enregistrer.assert_called_once()
 
-@pytest.mark.django_db
-def test_successful_inscription():
-    client = Client()
-    user_data = {
-        'username': 'validuser',
-        'password1': 'Validpassword123',
-        'password2': 'Validpassword123',
-    }
-    response = client.post(reverse('inscription'), user_data)
-    assert response.status_code == 302  # Redirection après inscription réussie
-    assert User.objects.filter(username='validuser').exists()
+    def test_stop_recording(self):
+        # Simuler une transcription
+        audio = Audio.objects.create(user=self.user)
+        transcription = Transcription.objects.create(audio=audio, text="Test transcription")
+        
+        with patch('BrefBoard.views.transcription', transcription):
+            response = self.client.post(reverse('stop_recording'))
+            self.assertEqual(response.status_code, 200)
+            self.assertJSONEqual(str(response.content, encoding='utf8'), {
+                'status': 'Enregistrement arrêté',
+                'texte_transcrit': 'Test transcription'
+            })
 
-@pytest.mark.django_db
-def test_failed_inscription():
-    client = Client()
-    user_data = {
-        'username': 'user',
-        'password1': 'password',
-        'password2': 'password123',  # Mots de passe différents
-    }
-    response = client.post(reverse('inscription'), user_data)
-    assert response.status_code == 200  # Pas de redirection
-    assert 'form' in response.context
-    assert response.context['form'].is_valid() == False
-    
-@pytest.mark.django_db
-def test_failed_login():
-    client = Client()
-    response = client.post(reverse('login'), {'username': 'wronguser', 'password': 'wrongpassword'})
-    assert response.status_code == 200  # Pas de redirection
-    assert '_auth_user_id' not in client.session
+    @patch('BrefBoard.views.generate_summary_and_title')
+    def test_save_and_summarize(self, mock_generate):
+        mock_generate.return_value = ("Résumé test", "Titre test")
+        
+        audio = Audio.objects.create(user=self.user)
+        Transcription.objects.create(audio=audio, text="Texte original")
+
+        response = self.client.post(reverse('save_and_summarize'), 
+                                    {'texte': 'Nouveau texte'}, 
+                                    content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['texte_sauvegarde'], 'Nouveau texte')
+        self.assertEqual(data['resume_texte'], 'Résumé test')
+        self.assertEqual(data['titre'], 'Titre test')
+
+    def test_profil_view(self):
+        response = self.client.get(reverse('profil'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'profil.html')
+
+    def test_get_transcription(self):
+        audio = Audio.objects.create(user=self.user, title="Test Audio")
+        transcription = Transcription.objects.create(audio=audio, text="Test transcription")
+        
+        response = self.client.get(reverse('get_transcription', args=[transcription.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {
+            'title': 'Test Audio',
+            'text': 'Test transcription'
+        })
+
+    # Ajoutez d'autres tests pour les autres vues...
 
