@@ -101,9 +101,6 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou à
 
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
-## 📞 Contact
-
-Pour toute question ou suggestion, veuillez contacter [votre-email@example.com](mailto:votre-email@example.com).
 
 ---
 
