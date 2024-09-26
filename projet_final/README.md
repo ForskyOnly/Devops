@@ -23,8 +23,7 @@ BrefBoard est une application web innovante conçue pour simplifier la prise de 
 
 ## 📁 Structure du projet
 
-projet_final/
-│
+```projet_final/
 ├── BrefBoard/ # Application principale
 │ ├── static/ # Fichiers statiques (CSS, JS)
 │ ├── templates/ # Templates HTML
@@ -40,6 +39,7 @@ projet_final/
 ├── Dockerfile # Configuration Docker
 ├── docker-compose.yml # Configuration Docker Compose
 └── requirements.txt # Dépendances Python
+```
 
 
 ## 🚀 Installation et utilisation
