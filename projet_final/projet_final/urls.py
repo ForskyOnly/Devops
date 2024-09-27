@@ -15,27 +15,31 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from BrefBoard import views
 from django.conf import settings
 from django.conf.urls.static import static
-
-from BrefBoard.views import home, profil, CustomLoginView, CustomLogoutView, inscription, start_recording, stop_recording, get_current_transcription, get_transcription, save_and_summarize, get_summary, download_pdf, delete_transcription, delete_summary, generate_summary_and_title
+from BrefBoard.views import (
+    CustomLoginView, CustomLogoutView, home, profil, inscription, 
+    start_recording, stop_recording, get_current_transcription, 
+    get_transcription, save_and_summarize, get_summary, download_pdf, 
+    delete_transcription, delete_summary, generate_summary_and_title
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('generate_summary/',views.generate_summary_and_title, name='generate_summary'),    
-    path('', views.home, name='home'),
-    path('profil/', views.profil, name='profil'),
-    path('login/', views.CustomLoginView.as_view(), name='login'),
-    path('logout/', views.CustomLogoutView.as_view(), name='logout'),
-    path('inscription/', views.inscription, name='inscription'),
-    path('start_recording/', views.start_recording, name='start_recording'),
-    path('stop_recording/', views.stop_recording, name='stop_recording'),
-    path('get_current_transcription/', views.get_current_transcription, name='get_current_transcription'),
-    path('get_transcription/<int:id>/', views.get_transcription, name='get_transcription'),
-    path('save_and_summarize/', views.save_and_summarize, name='save_and_summarize'),
-    path('get_summary/<int:id>/', views.get_summary, name='get_summary'),
+    path('generate_summary/', generate_summary_and_title, name='generate_summary'),    
+    path('', home, name='home'),
+    path('profil/', profil, name='profil'),
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('inscription/', inscription, name='inscription'),
+    path('start_recording/', start_recording, name='start_recording'),
+    path('stop_recording/', stop_recording, name='stop_recording'),
+    path('get_current_transcription/', get_current_transcription, name='get_current_transcription'),
+    path('get_transcription/<int:id>/', get_transcription, name='get_transcription'),
+    path('save_and_summarize/', save_and_summarize, name='save_and_summarize'),
+    path('get_summary/<int:id>/', get_summary, name='get_summary'),
     path('download_pdf/', download_pdf, name='download_pdf'),
-    path('delete_transcription/<int:id>/', views.delete_transcription, name='delete_transcription'),
-    path('delete_summary/<int:id>/', views.delete_summary, name='delete_summary'),
+    path('delete_transcription/<int:id>/', delete_transcription, name='delete_transcription'),
+    path('delete_summary/<int:id>/', delete_summary, name='delete_summary'),
+    path('', include('django_prometheus.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

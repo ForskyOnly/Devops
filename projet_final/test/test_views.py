@@ -14,6 +14,7 @@ class ViewsTestCase(TestCase):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home.html')
+        self.assertTrue(True)  
 
     @patch('BrefBoard.views.enregistrer_audio_et_transcrire')
     def test_start_recording(self, mock_enregistrer):
@@ -21,6 +22,7 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(str(response.content, encoding='utf8'), {'status': 'Enregistrement démarré'})
         mock_enregistrer.assert_called_once()
+        self.assertTrue(True)  
 
     def test_stop_recording(self):
         # Simuler une transcription
@@ -34,6 +36,7 @@ class ViewsTestCase(TestCase):
                 'status': 'Enregistrement arrêté',
                 'texte_transcrit': 'Test transcription'
             })
+        self.assertTrue(True)  
 
     @patch('BrefBoard.views.generate_summary_and_title')
     def test_save_and_summarize(self, mock_generate):
@@ -51,11 +54,13 @@ class ViewsTestCase(TestCase):
         self.assertEqual(data['texte_sauvegarde'], 'Nouveau texte')
         self.assertEqual(data['resume_texte'], 'Résumé test')
         self.assertEqual(data['titre'], 'Titre test')
+        self.assertTrue(True)  
 
     def test_profil_view(self):
         response = self.client.get(reverse('profil'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'profil.html')
+        self.assertTrue(True)  
 
     def test_get_transcription(self):
         audio = Audio.objects.create(user=self.user, title="Test Audio")
@@ -67,6 +72,5 @@ class ViewsTestCase(TestCase):
             'title': 'Test Audio',
             'text': 'Test transcription'
         })
-
-    # Ajoutez d'autres tests pour les autres vues...
+        self.assertTrue(True) 
 
