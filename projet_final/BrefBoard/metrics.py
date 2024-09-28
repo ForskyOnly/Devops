@@ -61,8 +61,6 @@ def monitor_whisper_processing(func):
 def record_audio_duration(duration):
     AUDIO_DURATION.observe(duration)
 
-def record_audio_quality(quality_score):
-    RECORDING_QUALITY.set(quality_score)
 
 def increment_recording_error(error_type):
     RECORDING_ERRORS.labels(error_type=error_type).inc()

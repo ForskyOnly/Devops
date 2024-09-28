@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = ['*']
 
-# Dans settings.py
+
 import os
 from dotenv import load_dotenv
 
