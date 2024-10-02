@@ -46,6 +46,7 @@ api_key = os.getenv('MISTRAL_API_KEY')
 @monitor_view
 @count_requests
 @login_required
+@csrf_protect
 def prediction_view(request):
     prediction_result = None
     if request.method == 'POST':
@@ -314,8 +315,15 @@ def generate_summary_and_title(texte, transcription_id=None):
 
     return resume_texte, titre
 
+@method_decorator(csrf_protect, name='dispatch')
 @method_decorator(monitor_view, name='dispatch')
 @method_decorator(count_requests, name='dispatch')
+class CustomLoginView(LoginView):
+    template_name = 'login.html'
+
+    def form_valid(self, form):
+        logger.info("Connexion réussie pour l'utilisateur %s", form.get_user())
+        return super().form_valid(form)
 class CustomLoginView(LoginView):
     template_name = 'login.html'
 
@@ -388,6 +396,7 @@ def get_summary(request, id):
 
 @monitor_view
 @count_requests
+@csrf_protect
 def inscription(request):
     if request.method == 'POST':
         logger.info("Tentative d'inscription d'un nouvel utilisateur")
