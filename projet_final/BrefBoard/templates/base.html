@@ -15,6 +15,7 @@
                 <a href="{% url 'home' %}" class="nav-btn">Home</a>
                 {% if request.user.is_authenticated %}
                     <a href="{% url 'profil' %}" class="nav-btn">{{ request.user.username }}</a>
+                    <a href="{% url 'prediction' %}" class="nav-btn">Prédiction DCP</a>
                     <form method="post" action="{% url 'logout' %}" class="logout-form">
                         {% csrf_token %}
                         <button type="submit" class="nav-btn">Se déconnecter</button>

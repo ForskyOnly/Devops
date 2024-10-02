@@ -34,6 +34,7 @@ import json
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from prometheus_client import Counter, Histogram
+import requests
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -41,6 +42,37 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 api_key = os.getenv('MISTRAL_API_KEY')
+
+@monitor_view
+@count_requests
+@login_required
+def prediction_view(request):
+    prediction_result = None
+    if request.method == 'POST':
+        input_text = request.POST.get('input_text')
+        
+        api_url = "http://dcpclassification-unique-dns.francecentral.azurecontainer.io:8000/predict"
+        
+        headers = {
+            settings.API_KEY_NAME: settings.API_KEY
+        }
+        
+        data = {"text": input_text}
+        
+        try:
+            response = requests.post(api_url, json=data, headers=headers)
+            response.raise_for_status()
+            prediction_result = response.json().get('prediction')
+            logger.info(f"Prédiction réussie pour l'utilisateur {request.user.username}")
+        except requests.RequestException as e:
+            ERROR_COUNTER.labels(type='prediction_api_error').inc()
+            prediction_result = f"Erreur : {str(e)}"
+            logger.error(f"Erreur lors de la prédiction pour l'utilisateur {request.user.username}: {str(e)}")
+
+    return render(request, 'prediction.html', {'prediction_result': prediction_result})
+
+
+
 
 # Charger le modèle Whisper au démarrage
 try:
@@ -86,8 +118,10 @@ def start_recording(request):
     file_transcription = Queue()
     transcription_en_cours = ""
 
+    logger.debug("Avant le démarrage du thread")
     thread = threading.Thread(target=enregistrer_audio_et_transcrire, args=(request.user,))
     thread.start()
+    logger.debug("Après le démarrage du thread")
 
     logger.debug("Thread d'enregistrement démarré")
     return JsonResponse({'status': 'Enregistrement démarré'})
@@ -157,7 +191,7 @@ def save_and_summarize(request):
 @measure_duration(TRANSCRIPTION_DURATION)
 @monitor_whisper_processing
 def enregistrer_audio_et_transcrire(user):
-    logger.info("Début de l'enregistrement audio et de la transcription pour l'utilisateur %s", user.username)
+    logger.debug("Début de la fonction enregistrer_audio_et_transcrire")
     global enregistrement, trames, texte_transcrit, transcription, enregistrement_termine, file_transcription
 
     bloc_taille = 1024

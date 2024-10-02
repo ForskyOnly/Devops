@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Prédiction DCP</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-field">
+            <label for="input_text">Texte à classifier :</label>
+            <textarea id="input_text" name="input_text" rows="4" cols="50" required></textarea>
+        </div>
+        <button type="submit">Prédire</button>
+    </form>
+
+    {% if prediction_result %}
+        <h3>Résultat de la prédiction :</h3>
+        <p>{{ prediction_result }}</p>
+    {% endif %}
+</div>
+{% endblock %}

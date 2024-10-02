@@ -30,6 +30,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+API_KEY_NAME = os.getenv('API_KEY_NAME')
+API_KEY = os.getenv('API_KEY')
 
 
 
@@ -58,6 +60,7 @@ MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'BrefBoard.middleware.ExceptionMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'BrefBoard.middleware.RequestMiddleware',
 ]
 
 ROOT_URLCONF = 'projet_final.urls'
