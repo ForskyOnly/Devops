@@ -10,10 +10,19 @@ API_KEY_NAME = os.getenv('API_KEY_NAME')
 API_KEY = os.getenv('API_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+DEBUG = False
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://*.bref-board.azurewebsites.net/']
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_USE_SESSIONS = True 
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.bref-board.azurewebsites.net',
+    'https://bref-board.azurewebsites.net',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://0.0.0.0:8000/',
+]
 
 
 DATABASES = {
