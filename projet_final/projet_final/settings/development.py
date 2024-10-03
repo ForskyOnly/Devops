@@ -4,11 +4,14 @@ import os
 
 load_dotenv(dotenv_path="/home/utilisateur/Documents/dev/devia/Devops/projet_final/.env")
 
-SECRET_KEY = os.getenv('SECRET_KEY', default='notsecret')
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 API_KEY_NAME = os.getenv('API_KEY_NAME')
 API_KEY = os.getenv('API_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
+RESOURCE_GROUP = os.getenv('RESOURCE_GROUP')
+LOCATION = os.getenv('LOCATION')
+SERVER_NAME = os.getenv('SERVER_NAME')
+SUBSCRIPTION_ID = os.getenv('SUBSCRIPTION_ID')
 
 DEBUG = True
 

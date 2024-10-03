@@ -24,12 +24,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://0.0.0.0:8000/',
 ]
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DATABASE'),
-        'USER': 'rubic',
+        'USER': os.getenv('NOMUSER'),  # Mise à jour ici
         'PASSWORD': os.getenv('PASSWORD'),
         'HOST': os.getenv('DATABASE_HOST'),
         'PORT': os.getenv('DATABASE_PORT'),
@@ -40,3 +39,9 @@ DATABASES = {
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Ajout des nouvelles variables d'environnement
+RESOURCE_GROUP = os.getenv('RESOURCE_GROUP')
+LOCATION = os.getenv('LOCATION')
+SERVER_NAME = os.getenv('SERVER_NAME')
+SUBSCRIPTION_ID = os.getenv('SUBSCRIPTION_ID')
