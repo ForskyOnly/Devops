@@ -12,11 +12,15 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
-    - name: Install dependencies
+        python-version: '3.11'
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libasound2-dev libportaudio2 libportaudiocpp0 portaudio19-dev gcc ffmpeg
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r projet_final/requirements.txt
     - name: Run tests
       env:
         DJANGO_TEST_MODE: 'True'
@@ -29,15 +33,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-    
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
+        context: ./projet_final
+        file: ./projet_final/Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/brefboard:${{ github.sha }}
