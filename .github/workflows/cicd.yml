@@ -18,10 +18,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libasound2-dev libportaudio2 libportaudiocpp0 portaudio19-dev gcc ffmpeg
     - name: Install Python dependencies
+      working-directory: ./projet_final
       run: |
         python -m pip install --upgrade pip
-        pip install -r projet_final/requirements.txt
+        pip install -r requirements.txt
     - name: Run tests
+      working-directory: ./projet_final
       env:
         DJANGO_TEST_MODE: 'True'
         DJANGO_SETTINGS_MODULE: projet_final.settings.production
