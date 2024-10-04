@@ -48,6 +48,9 @@ api_key = os.getenv('MISTRAL_API_KEY')
 @login_required
 @csrf_protect
 def prediction_view(request):
+    """
+    View pour la prédiction de la catégorie de l'audio en fonction du texte transcrit, ARGS: input_text, RETURN: render
+    """
     prediction_result = None
     if request.method == 'POST':
         input_text = request.POST.get('input_text')
@@ -73,8 +76,6 @@ def prediction_view(request):
     return render(request, 'prediction.html', {'prediction_result': prediction_result})
 
 
-
-
 # Charger le modèle Whisper au démarrage
 try:
     appareil = "cuda" if torch.cuda.is_available() else "cpu"
@@ -93,7 +94,7 @@ enregistrement_termine = threading.Event()
 file_transcription = Queue()
 transcription_en_cours = ""
 
-# Nouvelles métriques
+#  métriques pour le résumé
 SUMMARIES_GENERATED = Counter('django_summaries_generated_total', 'Number of summaries generated')
 SUMMARY_GENERATION_TIME = Histogram('django_summary_generation_seconds', 'Time taken to generate summary')
 
@@ -109,6 +110,9 @@ def home(request):
 @login_required
 def start_recording(request):
     global enregistrement, trames, texte_transcrit, transcription, enregistrement_termine, file_transcription, transcription_en_cours
+    """
+    View pour démarrer l'enregistrement de l'audio, ARGS: request, RETUNR: JsonResponse
+    """
     logger.info("Démarrage de l'enregistrement pour l'utilisateur %s", request.user.username)
     AUDIO_RECORDINGS.inc()
     enregistrement = True
@@ -131,6 +135,9 @@ def start_recording(request):
 @count_requests
 @login_required
 def stop_recording(request):
+    """
+    View pour arrêter l'enregistrement de l'audio, ARGS: request, RETOURNE: JsonResponse
+    """
     global enregistrement, transcription, enregistrement_termine
     logger.info("Arrêt de l'enregistrement pour l'utilisateur %s", request.user.username)
     enregistrement = False
@@ -151,6 +158,9 @@ def stop_recording(request):
 @count_requests
 @login_required
 def get_current_transcription(request):
+    """
+    View pour récupérer la transcription en cours, ARGS: request, RETOURNE: JsonResponse
+    """
     logger.debug("Récupération de la transcription en cours pour l'utilisateur %s", request.user.username)
     global transcription_en_cours
     nouvelle_transcription = ""
@@ -170,6 +180,9 @@ def get_current_transcription(request):
 @login_required
 @require_http_methods(["POST"])
 def save_and_summarize(request):
+    """
+    View pour sauvegarder et résumer la transcription, ARGS: request, RETURN: JsonResponse
+    """
     logger.info("Sauvegarde et résumé de la transcription pour l'utilisateur %s", request.user.username)
     data = json.loads(request.body)
     texte = data['texte']
@@ -192,6 +205,9 @@ def save_and_summarize(request):
 @measure_duration(TRANSCRIPTION_DURATION)
 @monitor_whisper_processing
 def enregistrer_audio_et_transcrire(user):
+    """
+    Fonction pour enregistrer l'audio et transcrire le texte, ARGS: user, RETURN: None
+    """
     logger.debug("Début de la fonction enregistrer_audio_et_transcrire")
     global enregistrement, trames, texte_transcrit, transcription, enregistrement_termine, file_transcription
 
@@ -261,6 +277,9 @@ def enregistrer_audio_et_transcrire(user):
 
 @measure_duration(SUMMARY_GENERATION_TIME)
 def generate_summary_and_title(texte, transcription_id=None):
+    """
+    Fonction pour générer le résumé et le titre de la transcription, ARGS: texte, transcription_id, RETURN: resume_texte, titre
+    """
     logger.info("Génération du résumé et du titre pour la transcription %s", transcription_id)
     api_key = settings.MISTRAL_API_KEY
     client = MistralClient(api_key=api_key)
@@ -322,8 +341,12 @@ class CustomLoginView(LoginView):
     template_name = 'login.html'
 
     def form_valid(self, form):
+        """
+        Fonction pour gérer la connexion réussie, ARGS: form, RETURN: super().form_valid(form)
+        """
         logger.info("Connexion réussie pour l'utilisateur %s", form.get_user())
         return super().form_valid(form)
+    
 class CustomLoginView(LoginView):
     template_name = 'login.html'
 
@@ -344,6 +367,9 @@ class CustomLogoutView(LogoutView):
 @count_requests
 @login_required
 def profil(request):
+    """
+    View pour afficher le profil de l'utilisateur, ARGS: request, RETURN: render
+    """
     logger.info("Accès au profil pour l'utilisateur %s", request.user.username)
     sort_by = request.GET.get('sort', '-created_at')
     search_query = request.GET.get('search', '')
@@ -375,6 +401,9 @@ def profil(request):
 @count_requests
 @login_required
 def get_transcription(request, id):
+    """
+    View pour récupérer la transcription, ARGS: request, id, RETURN: JsonResponse
+    """
     logger.debug("Récupération de la transcription %s pour l'utilisateur %s", id, request.user.username)
     transcription = Transcription.objects.get(id=id, audio__user=request.user)
     return JsonResponse({
@@ -386,6 +415,9 @@ def get_transcription(request, id):
 @count_requests
 @login_required
 def get_summary(request, id):
+    """
+    View pour récupérer le résumé, ARGS: request, id, RETURN: JsonResponse
+    """
     logger.debug("Récupération du résumé %s pour l'utilisateur %s", id, request.user.username)
     summary = Summary.objects.get(id=id, transcription__audio__user=request.user)
     return JsonResponse({
@@ -398,6 +430,9 @@ def get_summary(request, id):
 @count_requests
 @csrf_protect
 def inscription(request):
+    """
+    View pour l'inscription d'un nouvel utilisateur, ARGS: request, RETURN: render
+    """
     if request.method == 'POST':
         logger.info("Tentative d'inscription d'un nouvel utilisateur")
         form = CustomUserCreationForm(request.POST)
@@ -415,6 +450,9 @@ def inscription(request):
 @count_requests
 @login_required
 def download_pdf(request):
+    """
+    View pour télécharger un PDF, ARGS: request, RETURN: HttpResponse
+    """
     logger.info("Téléchargement de PDF pour l'utilisateur %s", request.user.username)
     title = request.GET.get('title', 'Document')
     content = request.GET.get('content', '')
@@ -450,6 +488,9 @@ def download_pdf(request):
 @login_required
 @require_POST
 def delete_transcription(request, id):
+    """
+    View pour supprimer la transcription, ARGS: request, id, RETURN: JsonResponse
+    """
     logger.info("Suppression de la transcription %s pour l'utilisateur %s", id, request.user.username)
     try:
         transcription = Transcription.objects.get(id=id, audio__user=request.user)
@@ -465,6 +506,9 @@ def delete_transcription(request, id):
 @login_required
 @require_POST
 def delete_summary(request, id):
+    """
+    View pour supprimer le résumé, ARGS: request, id, RETURN: JsonResponse
+    """
     logger.info("Suppression du résumé %s pour l'utilisateur %s", id, request.user.username)
     try:
         summary = Summary.objects.get(id=id, transcription__audio__user=request.user)

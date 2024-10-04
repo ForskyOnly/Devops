@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        // Supprimer la ligne du tableau
+                        
                         this.closest('tr').remove();
                     } else {
                         alert('Erreur lors de la suppression');
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Fonction pour obtenir le token CSRF
+    
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {

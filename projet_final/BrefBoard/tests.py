@@ -5,6 +5,8 @@ from BrefBoard.models import Audio, Transcription, Summary
 from BrefBoard.forms import CustomUserCreationForm
 from django.conf import settings
 
+
+# test des vues
 @override_settings(STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage')
 class ViewsTestCase(TestCase):
     def setUp(self):
@@ -42,14 +44,14 @@ class ViewsTestCase(TestCase):
             'password1': 'complexpassword123',
             'password2': 'complexpassword123'
         })
-        self.assertEqual(response.status_code, 302)  # On s'attend maintenant à une redirection
+        self.assertEqual(response.status_code, 302)  
         
-        # Vérifier si l'utilisateur existe
+      
         user_exists = User.objects.filter(username='newuser').exists()
         self.assertTrue(user_exists)
         
-        # Optionnel : vérifier l'URL de redirection
-        self.assertRedirects(response, reverse('home'))  # Remplacez 'home' par l'URL réelle de redirection
+        
+        self.assertRedirects(response, reverse('home')) 
             
             
     def test_login(self):
@@ -58,7 +60,7 @@ class ViewsTestCase(TestCase):
             'username': 'testuser',
             'password': '12345'
         })
-        self.assertEqual(response.status_code, 302)  # Redirection après connexion réussie
+        self.assertEqual(response.status_code, 302)  
 
 
     def test_get_transcription(self):
@@ -95,23 +97,24 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertEqual(response['Content-Disposition'], 'attachment; filename="Test.pdf"')
 
+    # test des formulaires
 class FormTestCase(TestCase):
     def test_custom_user_creation_form(self):
         form_data = {
             'username': 'testuser',
-            'email': 'testuser@example.com',  # Ajout de l'email
+            'email': 'testuser@example.com',  
             'password1': 'Complexpassword123',
             'password2': 'Complexpassword123',
         }
         form = CustomUserCreationForm(data=form_data)
         if not form.is_valid():
-            print(form.errors)  # Affiche les erreurs si le formulaire n'est pas valide
+            print(form.errors)  
         self.assertTrue(form.is_valid())
 
     def test_custom_user_creation_form_password_mismatch(self):
         form_data = {
             'username': 'testuser',
-            'email': 'testuser@example.com',  # Ajout de l'email
+            'email': 'testuser@example.com',  
             'password1': 'complexpassword123',
             'password2': 'differentpassword123',
         }
@@ -119,11 +122,10 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('password2', form.errors)
 
-    # Vous pouvez ajouter un test supplémentaire pour vérifier la validation de l'email
     def test_custom_user_creation_form_invalid_email(self):
         form_data = {
             'username': 'testuser',
-            'email': 'invalid-email',  # Email invalide
+            'email': 'invalid-email',  
             'password1': 'complexpassword123',
             'password2': 'complexpassword123',
         }
@@ -131,6 +133,7 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('email', form.errors)
         
+      # test des models
 class ModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='12345')

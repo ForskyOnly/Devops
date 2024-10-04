@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
             editButton.style.display = 'inline-block';
             clearInterval(transcriptionInterval);
             transcriptionFinale.textContent = data.texte_transcrit;
-            console.log("Transcription reçue:", data.texte_transcrit); // Ajoutez cette ligne pour le débogage
+            console.log("Transcription reçue:", data.texte_transcrit); 
         });
     }
 
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             range.surroundContents(span);
         } else {
-            // Si aucun texte n'est sélectionné, appliquer le style à tout le contenu
+            
             switch(style) {
                 case 'fontSize':
                     resumeDiv.style.fontSize = value;
