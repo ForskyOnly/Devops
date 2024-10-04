@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Charger les variables d'environnement
-source .env
+source .env 
 
 # Connexion à Azure
 az login
