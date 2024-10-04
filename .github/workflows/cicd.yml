@@ -27,7 +27,7 @@ jobs:
       env:
           DJANGO_TEST_MODE: 'True'
           DJANGO_SETTINGS_MODULE: projet_final.settings.production
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         python manage.py test BrefBoard --exclude-tag=skip_whisper
 
