@@ -1,55 +1,68 @@
 #!/bin/bash
 
-# Charger les variables d'environnement du fichier .env
-set -o allexport
+# Charger les variables d'environnement
 source .env
-set +o allexport
 
-# Se connecter à Azure
+# Connexion à Azure
 az login
 
-# Définir l'ID de l'abonnement
+# Définir la souscription
 az account set --subscription $SUBSCRIPTION_ID
 
-# Créer un nouveau groupe de ressources s'il n'existe pas
-az group create --name $RESOURCE_GROUP --location $LOCATION
+# Créer un plan App Service (si non existant)
+az appservice plan create --name bref-board-plan --resource-group $RESOURCE_GROUP --sku B1 --is-linux
 
-# Créer un nouveau serveur MySQL flexible
-az mysql flexible-server create \
-    --name $SERVER_NAME \
-    --resource-group $RESOURCE_GROUP \
-    --location $LOCATION \
-    --admin-user $USERNAME \
-    --admin-password $PASSWORD \
-    --sku-name Standard_B1ms \
-    --storage-size 32 \
-    --version 8.0.21 \
-    --public-access 0.0.0.0-255.255.255.255
+# Créer une Web App pour conteneurs
+az webapp create --resource-group $RESOURCE_GROUP --plan bref-board-plan --name bref-board --deployment-container-image-name forskyonly/brefboard:latest
 
-# Obtenir l'adresse IPv4 publique actuelle
-MY_IP=$(curl -4 ifconfig.me)
+# Configurer les variables d'environnement pour l'application
+az webapp config appsettings set --resource-group $RESOURCE_GROUP --name bref-board --settings \
+    SECRET_KEY="$SECRET_KEY" \
+    DJANGO_SETTINGS_MODULE="$DJANGO_SETTINGS_MODULE" \
+    MISTRAL_API_KEY="$MISTRAL_API_KEY" \
+    RESOURCE_GROUP="$RESOURCE_GROUP" \
+    LOCATION="$LOCATION" \
+    SERVER_NAME="$SERVER_NAME" \
+    NOMUSER="$NOMUSER" \
+    PASSWORD="$PASSWORD" \
+    DATABASE_PORT="$DATABASE_PORT" \
+    DATABASE="$DATABASE" \
+    DATABASE_HOST="$DATABASE_HOST" \
+    SUBSCRIPTION_ID="$SUBSCRIPTION_ID" \
+    API_KEY_NAME="$API_KEY_NAME" \
+    API_KEY="$API_KEY"
 
-# Configurer le pare-feu pour permettre l'accès à partir de l'adresse IPv4 actuelle
+# Configurer les paramètres de connexion à la base de données
+az webapp config connection-string set --resource-group $RESOURCE_GROUP --name bref-board --connection-string-type MySQL \
+    --settings DefaultConnection="Server=$DATABASE_HOST; Database=$DATABASE; Uid=$NOMUSER; Pwd=$PASSWORD;"
+
+# Configurer le pare-feu de la base de données pour autoriser l'App Service
+OUTBOUND_IP_ADDRESSES=$(az webapp show --resource-group $RESOURCE_GROUP --name bref-board --query outboundIpAddresses --output tsv)
+IFS=',' read -ra IP_ARRAY <<< "$OUTBOUND_IP_ADDRESSES"
+for IP in "${IP_ARRAY[@]}"; do
+    az mysql flexible-server firewall-rule create \
+        --resource-group $RESOURCE_GROUP \
+        --name $SERVER_NAME \
+        --rule-name "AllowAppService_$IP" \
+        --start-ip-address $IP \
+        --end-ip-address $IP
+done
+
+# Autoriser les services Azure à accéder au serveur MySQL flexible
 az mysql flexible-server firewall-rule create \
     --resource-group $RESOURCE_GROUP \
     --name $SERVER_NAME \
-    --rule-name AllowMyIPv4 \
-    --start-ip-address $MY_IP \
-    --end-ip-address $MY_IP
+    --rule-name AllowAzureServices \
+    --start-ip-address 0.0.0.0 \
+    --end-ip-address 255.255.255.255
 
-# Créer une nouvelle base de données MySQL
-az mysql flexible-server db create --resource-group $RESOURCE_GROUP --server-name $SERVER_NAME --database-name $DATABASE
+# Activer HTTPS et forcer HTTPS
+az webapp update --resource-group $RESOURCE_GROUP --name bref-board --https-only true
 
-# Afficher les détails du serveur MySQL
-az mysql flexible-server show --resource-group $RESOURCE_GROUP --name $SERVER_NAME
+# Configurer les paramètres TLS/SSL
+az webapp config set --resource-group $RESOURCE_GROUP --name bref-board --min-tls-version 1.2
 
-# Installer le client MySQL s'il n'est pas déjà installé
-if ! command -v mysql &> /dev/null
-then
-    echo "Client MySQL introuvable. Installation de MySQL client..."
-    sudo apt-get update
-    sudo apt-get install mysql-client -y
-fi
+# Redémarrer l'application pour appliquer les changements
+az webapp restart --name bref-board --resource-group $RESOURCE_GROUP
 
-# Indiquer l'achèvement de la première partie
-echo "Configuration Azure et MySQL terminée. Procédez avec le script de migration Django et de création des tables."
+echo "Déploiement terminé. Votre application devrait être accessible en HTTPS à l'adresse https://bref-board.azurewebsites.net"

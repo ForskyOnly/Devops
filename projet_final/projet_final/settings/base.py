@@ -20,8 +20,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-
-ALLOWED_HOSTS = ['*']
+CONTAINER_URL = f'http://{os.environ.get("WEBSITE_HOSTNAME", "bref-board-dns.francecentral.azurecontainer.io")}'
+ALLOWED_HOSTS = [
+    CONTAINER_URL.replace('http://', '').replace('https://', ''),
+    '127.0.0.1',
+    'localhost',
+    '0.0.0.0',
+]
 
 
 import os
@@ -123,11 +128,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-# Répertoire où collecter les fichiers statiques
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-
+STATIC_ROOT = os.path.join(BASE_DIR.parent, 'BrefBoard', 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR.parent, 'BrefBoard', 'static'),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 

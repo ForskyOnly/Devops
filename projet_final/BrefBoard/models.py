@@ -18,3 +18,4 @@ class Summary(models.Model):
     transcription = models.OneToOneField(Transcription, on_delete=models.CASCADE)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
