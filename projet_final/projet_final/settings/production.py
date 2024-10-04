@@ -13,7 +13,7 @@ RESOURCE_GROUP = os.getenv('RESOURCE_GROUP')
 LOCATION = os.getenv('LOCATION')
 SERVER_NAME = os.getenv('SERVER_NAME')
 SUBSCRIPTION_ID = os.getenv('SUBSCRIPTION_ID')
-
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
 CSRF_COOKIE_SECURE = False  # Changé à False car nous n'utilisons pas HTTPS
