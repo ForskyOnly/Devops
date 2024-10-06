@@ -21,7 +21,7 @@ from BrefBoard.views import (
     CustomLoginView, CustomLogoutView, home, profil, inscription, 
     start_recording, stop_recording, get_current_transcription, 
     get_transcription, save_and_summarize, get_summary, download_pdf, 
-    delete_transcription, delete_summary, generate_summary_and_title, prediction_view
+    delete_transcription, delete_summary, generate_summary_and_title, prediction_view, upload_audio
 )
 
 urlpatterns = [
@@ -43,4 +43,5 @@ urlpatterns = [
     path('delete_summary/<int:id>/', delete_summary, name='delete_summary'),
     path('', include('django_prometheus.urls')),
     path('prediction/', prediction_view, name='prediction'),
+    path('upload_audio/', upload_audio, name='upload_audio'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

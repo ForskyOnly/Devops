@@ -50,8 +50,6 @@
     </div>
 </div>
 
-
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -65,7 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const resumeDiv = document.getElementById('resume-content');
     const titreDiv = document.getElementById('titre-reunion');
 
-    let transcriptionInterval;
+    let mediaRecorder;
+    let audioChunks = [];
 
     startButton.addEventListener('click', startRecording);
     stopButton.addEventListener('click', stopRecording);
@@ -89,48 +88,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
 
     function startRecording() {
-        fetch('{% url "start_recording" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data.status);
-            startButton.style.display = 'none';
-            stopButton.style.display = 'inline-block';
-            editButton.style.display = 'none';
-            saveButton.style.display = 'none';
-            transcriptionRealtime.textContent = '';
-            transcriptionFinale.value = '';
-            resumeDiv.textContent = '';
-            transcriptionInterval = setInterval(getTranscription, 1000);
-        });
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                mediaRecorder.start();
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                editButton.style.display = 'none';
+                saveButton.style.display = 'none';
+                transcriptionRealtime.textContent = 'Enregistrement en cours...';
+            });
     }
 
     function stopRecording() {
-        fetch('{% url "stop_recording" %}', {
+        mediaRecorder.stop();
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            sendAudioToServer(audioBlob);
+        };
+        startButton.style.display = 'inline-block';
+        stopButton.style.display = 'none';
+        editButton.style.display = 'inline-block';
+    }
+
+    function sendAudioToServer(audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        
+        fetch('{% url "upload_audio" %}', {
             method: 'POST',
+            body: formData,
             headers: {
                 'X-CSRFToken': csrftoken
             }
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data.status);
-            startButton.style.display = 'inline-block';
-            stopButton.style.display = 'none';
-            editButton.style.display = 'inline-block';
-            clearInterval(transcriptionInterval);
-            transcriptionFinale.textContent = data.texte_transcrit;
-            console.log("Transcription reçue:", data.texte_transcrit); 
-        });
+            if (data.status === 'success') {
+                transcriptionFinale.textContent = data.texte_transcrit;
+                console.log("Transcription reçue:", data.texte_transcrit);
+            } else {
+                console.error('Erreur:', data.message);
+            }
+        })
+        .catch(error => console.error('Erreur:', error));
     }
 
     function editTranscription() {
-        const transcriptionFinale = document.getElementById('transcription-finale');
-        const transcriptionEditable = document.getElementById('transcription-editable');
         transcriptionEditable.value = transcriptionFinale.textContent;
         transcriptionFinale.style.display = 'none';
         transcriptionEditable.style.display = 'block';
@@ -139,8 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function saveTranscription() {
-        const transcriptionFinale = document.getElementById('transcription-finale');
-        const transcriptionEditable = document.getElementById('transcription-editable');
         const texteCorrige = transcriptionEditable.value;
         fetch('{% url "save_and_summarize" %}', {
             method: 'POST',
@@ -158,16 +163,6 @@ document.addEventListener('DOMContentLoaded', function() {
             transcriptionEditable.style.display = 'none';
             saveButton.style.display = 'none';
             editButton.style.display = 'inline-block';
-        });
-    }
-
-    function getTranscription() {
-        fetch('{% url "get_current_transcription" %}')
-        .then(response => response.json())
-        .then(data => {
-            const transcriptionRealtime = document.getElementById('transcription-realtime');
-            transcriptionRealtime.textContent = data.transcription_complete;
-            transcriptionRealtime.scrollTop = transcriptionRealtime.scrollHeight;
         });
     }
 

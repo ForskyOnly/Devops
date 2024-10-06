@@ -85,14 +85,6 @@ except RuntimeError as e:
     appareil = "cpu"
     modele = whisper.load_model("small", device=appareil)
 
-# Variables globales pour gérer l'enregistrement
-enregistrement = False
-trames = []
-texte_transcrit = ""
-transcription = None
-enregistrement_termine = threading.Event()
-file_transcription = Queue()
-transcription_en_cours = ""
 
 #  métriques pour le résumé
 SUMMARIES_GENERATED = Counter('django_summaries_generated_total', 'Number of summaries generated')
@@ -111,26 +103,11 @@ def home(request):
 @require_POST
 @ensure_csrf_cookie
 def start_recording(request):
-    global enregistrement, trames, texte_transcrit, transcription, enregistrement_termine, file_transcription, transcription_en_cours
     """
-    View pour démarrer l'enregistrement de l'audio, ARGS: request, RETUNR: JsonResponse
+    View pour démarrer l'enregistrement de l'audio côté client, ARGS: request, RETURN: JsonResponse
     """
     logger.info("Démarrage de l'enregistrement pour l'utilisateur %s", request.user.username)
     AUDIO_RECORDINGS.inc()
-    enregistrement = True
-    trames = []
-    texte_transcrit = ""
-    transcription = None
-    enregistrement_termine.clear()
-    file_transcription = Queue()
-    transcription_en_cours = ""
-
-    logger.debug("Avant le démarrage du thread")
-    thread = threading.Thread(target=enregistrer_audio_et_transcrire, args=(request.user,))
-    thread.start()
-    logger.debug("Après le démarrage du thread")
-
-    logger.debug("Thread d'enregistrement démarré")
     return JsonResponse({'status': 'Enregistrement démarré'})
 
 @monitor_view
@@ -140,23 +117,60 @@ def start_recording(request):
 @ensure_csrf_cookie
 def stop_recording(request):
     """
-    View pour arrêter l'enregistrement de l'audio, ARGS: request, RETOURNE: JsonResponse
+    View pour arrêter l'enregistrement de l'audio côté client, ARGS: request, RETURN: JsonResponse
     """
-    global enregistrement, transcription, enregistrement_termine
     logger.info("Arrêt de l'enregistrement pour l'utilisateur %s", request.user.username)
-    enregistrement = False
-    enregistrement_termine.wait()
+    return JsonResponse({'status': 'Enregistrement arrêté'})
+
+@monitor_view
+@count_requests
+@login_required
+@require_POST
+@ensure_csrf_cookie
+def upload_audio(request):
+    """
+    View pour recevoir l'audio enregistré côté client, ARGS: request, RETURN: JsonResponse
+    """
+    logger.info("Réception de l'audio pour l'utilisateur %s", request.user.username)
+    if 'audio' not in request.FILES:
+        return JsonResponse({'status': 'error', 'message': 'Aucun fichier audio reçu'}, status=400)
     
-    if transcription is not None:
-        texte_transcrit = transcription.text
-        logger.debug(f"Transcription générée : {texte_transcrit[:100]}...")
+    audio_file = request.FILES['audio']
+    user = request.user
+    
+    try:
+        fichier_audio = Audio(user=user, file=audio_file)
+        fichier_audio.save()
+        
+        # Transcription de l'audio
+        texte_transcrit = transcrire_audio(fichier_audio.file.path)
+        
+        transcription = Transcription(audio=fichier_audio, text=texte_transcrit)
+        transcription.save()
+        
         return JsonResponse({
-            'status': 'Enregistrement arrêté',
+            'status': 'success',
             'texte_transcrit': texte_transcrit
         })
-    else:
-        ERROR_COUNTER.labels(type='transcription_failed').inc()
-        return JsonResponse({'status': 'Erreur lors de l\'enregistrement', 'texte_transcrit': ''}, status=500)
+    except Exception as e:
+        ERROR_COUNTER.labels(type='audio_upload_error').inc()
+        logger.exception("Erreur lors de l'upload et de la transcription de l'audio: %s", str(e))
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@measure_duration(TRANSCRIPTION_DURATION)
+@monitor_whisper_processing
+def transcrire_audio(chemin_fichier):
+    """
+    Fonction pour transcrire l'audio, ARGS: chemin_fichier, RETURN: texte_transcrit
+    """
+    try:
+        resultat = modele.transcribe(chemin_fichier, language='fr')
+        texte_transcrit = resultat["text"].strip()
+        return texte_transcrit
+    except Exception as e:
+        WHISPER_ERRORS.labels(error_type=type(e).__name__).inc()
+        logger.error(f"Erreur lors de la transcription : {str(e)}")
+        raise
 
 @monitor_view
 @count_requests
@@ -353,12 +367,6 @@ class CustomLoginView(LoginView):
         logger.info("Connexion réussie pour l'utilisateur %s", form.get_user())
         return super().form_valid(form)
     
-class CustomLoginView(LoginView):
-    template_name = 'login.html'
-
-    def form_valid(self, form):
-        logger.info("Connexion réussie pour l'utilisateur %s", form.get_user())
-        return super().form_valid(form)
 
 @method_decorator(monitor_view, name='dispatch')
 @method_decorator(count_requests, name='dispatch')
