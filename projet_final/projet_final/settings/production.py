@@ -16,15 +16,18 @@ SUBSCRIPTION_ID = os.getenv('SUBSCRIPTION_ID')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
-CSRF_COOKIE_SECURE = False  # Changé à False car nous n'utilisons pas HTTPS
-SESSION_COOKIE_SECURE = False  # Changé à False car nous n'utilisons pas HTTPS
-CSRF_COOKIE_HTTPONLY = True
-SESSION_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = True 
+CSRF_COOKIE_SECURE = False  # Correct pour HTTP
+SESSION_COOKIE_SECURE = False  # Correct pour HTTP
+CSRF_COOKIE_HTTPONLY = False  # Changé à False pour permettre l'accès JavaScript au cookie CSRF
+SESSION_COOKIE_HTTPONLY = True  # Peut rester True
+CSRF_USE_SESSIONS = False  # Changé à False pour utiliser les cookies plutôt que les sessions
 
-SECURE_PROXY_SSL_HEADER = None
-SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = None  # Correct
+SECURE_SSL_REDIRECT = False  # Correct
 
+# Ajoutez ces lignes :
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000'] 
 
 CONTAINER_URL = f'http://{os.environ.get("WEBSITE_HOSTNAME", "bref-board-dns.francecentral.azurecontainer.io")}'
 CSRF_TRUSTED_ORIGINS = [

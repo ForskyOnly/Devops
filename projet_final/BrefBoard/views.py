@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods, require_POST
 from django.db.models import Q
@@ -108,6 +108,8 @@ def home(request):
 @monitor_view
 @count_requests
 @login_required
+@require_POST
+@ensure_csrf_cookie
 def start_recording(request):
     global enregistrement, trames, texte_transcrit, transcription, enregistrement_termine, file_transcription, transcription_en_cours
     """
@@ -134,6 +136,8 @@ def start_recording(request):
 @monitor_view
 @count_requests
 @login_required
+@require_POST
+@ensure_csrf_cookie
 def stop_recording(request):
     """
     View pour arrêter l'enregistrement de l'audio, ARGS: request, RETOURNE: JsonResponse
@@ -157,6 +161,7 @@ def stop_recording(request):
 @monitor_view
 @count_requests
 @login_required
+@ensure_csrf_cookie
 def get_current_transcription(request):
     """
     View pour récupérer la transcription en cours, ARGS: request, RETOURNE: JsonResponse
@@ -178,7 +183,8 @@ def get_current_transcription(request):
 @monitor_view
 @count_requests
 @login_required
-@require_http_methods(["POST"])
+@require_POST
+@ensure_csrf_cookie
 def save_and_summarize(request):
     """
     View pour sauvegarder et résumer la transcription, ARGS: request, RETURN: JsonResponse

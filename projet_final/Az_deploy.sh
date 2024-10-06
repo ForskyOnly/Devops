@@ -4,8 +4,8 @@ az container create \
   --resource-group RG_RUBIC \
   --name bref-board-container \
   --image forskyonly/brefboard:latest \
-  --cpu 1 \
-  --memory 2 \
+  --cpu 2  \
+  --memory 4 \
   --ports 80 8000 \
   --dns-name-label bref-board-dns \
   --environment-variables \
